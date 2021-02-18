@@ -68,7 +68,12 @@ class ThisTestCommand(sublime_plugin.WindowCommand):
 		for v in self.window.views():
 			v.run_command('save');
 
-		self.window.run_command('exec', {'cmd':'%s %s "%s,%s"'%(test_bat,wincc_ver, fn,close)});
+		good_to_go = True
+		# if self.window.settings().has('syntax_checked') and self.window.settings().get('syntax_checked'):
+		# 	good_to_go = self.window.run_command('check_control_syntax')
+		
+		if good_to_go:
+			self.window.run_command('exec', {'cmd':'%s %s "%s,%s"'%(test_bat,wincc_ver, fn,close)});
 
 	def description(self):
 		fn = "'none'"
@@ -94,14 +99,18 @@ class CheckControlSyntaxCommand(sublime_plugin.WindowCommand):
 		proc = Popen("%s  -syntax -log -file -log +stderr -currentproj %s"%(wccoactrl, file_sub_path), stderr = PIPE, stdout = PIPE, shell = True)
 		(so, se) = proc.communicate()
 
+		sntxOk = True
 		if(proc.returncode != 0):
 			result = re.search(r'Syntax error, .*ctl Line: (\d*) Column: (\d*),', str(se))
 			if(result != None):
+				sntxOk = False
 				row = int(result.group(1))
 				col = int(result.group(2))
 				text_pos = self.window.active_view().text_point(row, col)
 				self.window.run_command('show_overlay', {'overlay':'goto', 'text':':%i:%i'%(row, col)})
 				self.window.run_command('hide_overlay')
+
+		return sntxOk
 
 	def description(self):
 		fn = "'none'"
@@ -124,6 +133,17 @@ class SetCloseCheckedCommand(sublime_plugin.WindowCommand):
 
 	def is_checked(self):
 		return self.window.settings().has('close_checked') and self.window.settings().get('close_checked')
+
+class SetSyntaxCheckedCommand(sublime_plugin.WindowCommand):
+	def run(self):
+		state = self.window.settings().get('syntax_checked')
+		self.window.settings().set('syntax_checked', not state)
+		
+	def is_enabled(self):
+		return self.window.active_view().settings().get('syntax') == 'Packages/WinCC/wincc.sublime-syntax'
+
+	def is_checked(self):
+		return self.window.settings().has('syntax_checked') and self.window.settings().get('syntax_checked')
 
 class EventListener(sublime_plugin.ViewEventListener):
 	@classmethod

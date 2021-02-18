@@ -9,7 +9,8 @@
 			{ "command": "this_test"},
 			{ "command": "check_control_syntax"},
 			{ "caption": "-", "id":"check"},
-			{ "caption": "Append 'close' flag", "id":"check", "command": "set_close_checked", "checkbox": true}
+			{ "caption": "Append 'close' flag", "id":"check", "command": "set_close_checked", "checkbox": true},
+			{ "caption": "Syntax check before test", "id":"syntaxcheck", "command": "set_syntax_checked", "checkbox": true}
 		]
 	}
 ]
